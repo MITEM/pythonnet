@@ -422,7 +422,30 @@ namespace Python.Runtime
             return new PyObject(m);
         }
 
-        public static PyObject Compile(string code, string filename = "", RunFlagType mode = RunFlagType.File)
+		/// <summary>
+		/// Load module from a file.  
+		/// </summary>
+		/// <param name="moduleName">Module name</param>
+		/// <param name="filePath">Path to the file.</param>
+		/// <returns>Python module object.</returns>
+		/// <remarks>
+		/// <para>In most cases the module name should be the file's base name
+		/// (Path.GetFileNameWithOutExtension()).  However, if you ask for a 
+		/// module that has already been loaded you will get a reference 
+		/// to the existing module.  If you want to load code from the file
+		/// as different modules then create unique module names for each.</para>
+		/// </remarks>
+		public static PyObject ModuleFromFile(string moduleName, string filePath)
+		{
+			string code = File.ReadAllText(filePath);
+			IntPtr c = Runtime.Py_CompileString(code, filePath, (IntPtr)257);
+			Runtime.CheckExceptionOccurred();
+			IntPtr m = Runtime.PyImport_ExecCodeModule(moduleName, c);
+			Runtime.CheckExceptionOccurred();
+			return new PyObject(m);
+		}
+
+		public static PyObject Compile(string code, string filename = "", RunFlagType mode = RunFlagType.File)
         {
             var flag = (IntPtr)mode;
             IntPtr ptr = Runtime.Py_CompileString(code, filename, flag);
